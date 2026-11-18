@@ -1,0 +1,29 @@
+name: Verify retail lakehouse
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build and reconcile from raw files
+        run: docker compose run --build --rm pipeline sh scripts/run_demo.sh
+
+      - name: Verify unchanged replay
+        run: docker compose run --rm pipeline sh scripts/run_demo.sh
+
+      - name: Remove disposable artifacts
+        if: always()
+        run: docker compose down

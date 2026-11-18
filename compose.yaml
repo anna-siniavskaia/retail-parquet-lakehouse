@@ -1,0 +1,10 @@
+services:
+  pipeline:
+    build: .
+    volumes:
+      - ./contracts:/app/contracts:ro
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./scripts:/app/scripts:ro
+      - ./data:/app/data
+      - ./warehouse:/app/warehouse
