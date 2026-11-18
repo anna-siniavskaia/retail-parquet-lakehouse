@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/retail-order-event-v1.schema.json",
+  "title": "Synthetic retail order change v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "order_id", "event_version", "customer_id", "order_date", "updated_at", "status", "amount_cents", "currency"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "event_id": {"type": "string", "format": "uuid"},
+    "order_id": {"type": "string", "pattern": "^order-[0-9]{5}$"},
+    "event_version": {"type": "integer", "minimum": 1, "maximum": 3},
+    "customer_id": {"type": "string", "pattern": "^customer-[0-9]{4}$"},
+    "order_date": {"type": "string", "format": "date"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["placed", "paid", "cancelled", "refunded"]},
+    "amount_cents": {"type": "integer", "minimum": 1},
+    "currency": {"enum": ["USD", "EUR"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"event_version": {"const": 1}}}, "then": {"properties": {"status": {"const": "placed"}}}},
+    {"if": {"properties": {"event_version": {"const": 2}}}, "then": {"properties": {"status": {"enum": ["paid", "cancelled"]}}}},
+    {"if": {"properties": {"event_version": {"const": 3}}}, "then": {"properties": {"status": {"const": "refunded"}}}}
+  ]
+}
