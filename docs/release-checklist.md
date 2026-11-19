@@ -19,7 +19,7 @@ See [verification.md](verification.md) and [performance.md](performance.md) for 
 
 ## Before the first push
 
-- [ ] Run the complete Docker demo and all nine tests from a clean `data/` and `warehouse/` directory.
+- [x] Run the complete Docker demo and all nine tests from a clean `data/` and `warehouse/` directory.
 - [ ] Review `git status` and the complete tracked-file list for credentials, generated data, and large files.
 - [ ] Create the GitHub repository as private and push `main` on its planned release date.
 
