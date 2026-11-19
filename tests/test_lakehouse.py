@@ -94,6 +94,20 @@ class LakehouseIntegrationTests(unittest.TestCase):
         self.assertTrue((self.output / "bronze/batch_id=batch-002/events.parquet").is_file())
         self.assertTrue((self.output / "quarantine/batch_id=batch-002/invalid.parquet").is_file())
 
+    def test_quality_detects_bronze_content_change_without_count_change(self):
+        run(self.raw, self.output)
+        bronze = self.output / "bronze/batch_id=batch-001/events.parquet"
+        replacement = bronze.with_name("replacement.parquet")
+        with duckdb.connect() as connection:
+            connection.execute(
+                "COPY (SELECT * REPLACE ('cancelled' AS status) FROM read_parquet(?)) "
+                "TO ? (FORMAT PARQUET)",
+                [str(bronze), str(replacement)],
+            )
+        replacement.replace(bronze)
+        with self.assertRaisesRegex(RuntimeError, "bronze Parquet differs"):
+            check_quality(self.output)
+
     def test_pending_exports_are_repaired_after_database_commit(self):
         self.output.mkdir()
         with duckdb.connect(str(self.output / "lakehouse.duckdb")) as connection:

@@ -1,8 +1,8 @@
 # Retail Orders Parquet Lakehouse
 
-A Data Engineering project in progress. It turns fictional order-change files into a bronze/silver/gold analytical lakehouse using DuckDB and Parquet. Every customer and order ID is generated; no commercial or personal data is included.
+A local Data Engineering pipeline that turns fictional order-change files into a bronze/silver/gold analytical lakehouse using DuckDB and Parquet. Every customer and order ID is generated; no commercial or personal data is included.
 
-## Target pipeline
+## Pipeline
 
 ```text
 deterministic JSONL batches → bronze Parquet → validated latest-order silver Parquet → daily gold Parquet
@@ -12,7 +12,7 @@ deterministic JSONL batches → bronze Parquet → validated latest-order silver
 
 The input represents order changes. `event_id` identifies a unique change, while `(order_id, event_version)` defines an order's version history. A file can arrive twice without duplicating a change. A later batch can contain an older `updated_at` than events already ingested, so event time cannot be used as the ingestion cursor.
 
-Gold revenue will count orders whose **latest** status is `paid`, grouped by order date and currency. USD and EUR amounts stay separate. Prices are integer cents to avoid floating-point rounding in ingestion and reconciliation.
+Gold revenue counts orders whose **latest** status is `paid`, grouped by order date and currency. USD and EUR amounts stay separate. Prices are integer cents to avoid floating-point rounding in ingestion and reconciliation.
 
 ```text
 contracts/  JSON Schema for one order change

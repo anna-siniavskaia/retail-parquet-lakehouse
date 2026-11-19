@@ -16,6 +16,24 @@ def parquet_rows(connection: duckdb.DuckDBPyConnection, files: list[Path]) -> in
     ).fetchone()[0]
 
 
+def assert_export_matches(
+    connection: duckdb.DuckDBPyConnection,
+    files: list[Path],
+    export_query: str,
+    source_query: str,
+    layer: str,
+) -> None:
+    if not files:
+        return
+    paths = [str(path) for path in files]
+    for left, right in ((export_query, source_query), (source_query, export_query)):
+        difference = connection.execute(
+            f"SELECT 1 FROM ({left} EXCEPT ALL {right}) LIMIT 1", [paths]
+        ).fetchone()
+        if difference:
+            raise RuntimeError(f"{layer} Parquet differs from DuckDB state")
+
+
 def check_quality(output_dir: Path) -> dict[str, int]:
     connection = duckdb.connect(str(output_dir / "lakehouse.duckdb"), read_only=True)
     try:
@@ -58,6 +76,24 @@ def check_quality(output_dir: Path) -> dict[str, int]:
             raise RuntimeError("unique event count differs from valid deliveries minus duplicates")
         if (bronze, silver, quarantine_export, gold_orders) != (valid, orders, quarantined, orders):
             raise RuntimeError("Parquet row counts differ from DuckDB state")
+        assert_export_matches(
+            connection,
+            bronze_files,
+            "SELECT file_name, line_number, event_id, order_id, event_version, "
+            "customer_id, order_date, updated_at, status, amount_cents, currency "
+            "FROM read_parquet(?)",
+            "SELECT d.file_name, d.line_number, e.event_id, e.order_id, e.event_version, "
+            "e.customer_id, e.order_date, e.updated_at, e.status, e.amount_cents, e.currency "
+            "FROM core.deliveries d JOIN core.events e USING (event_id)",
+            "bronze",
+        )
+        assert_export_matches(
+            connection,
+            quarantine_files,
+            "SELECT file_name, line_number, raw_line, reason FROM read_parquet(?)",
+            "SELECT file_name, line_number, raw_line, reason FROM core.quarantine",
+            "quarantine",
+        )
         if silver_files:
             source_rows = connection.execute("""
                 SELECT order_id, event_id::VARCHAR, event_version, order_date,
