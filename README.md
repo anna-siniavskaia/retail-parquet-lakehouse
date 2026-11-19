@@ -47,4 +47,4 @@ The generator writes three ordered batch files. Repeating the demo skips unchang
 
 The latest order state has **40 paid**, **30 placed**, **20 refunded**, and **10 cancelled** orders. Gold Parquet contains 23 currently paid EUR orders worth **578,748 cents** and 17 currently paid USD orders worth **479,572 cents**. These are generated test values, not sales findings.
 
-See [fixture details](docs/fixture.md), [architecture and recovery](docs/architecture.md), [metric definitions](docs/metrics.md), [local verification](docs/verification.md), and [performance note](docs/performance.md) for expected outcomes and limitations.
+See [fixture details](docs/fixture.md), [architecture and recovery](docs/architecture.md), [metric definitions](docs/metrics.md), [local verification](docs/verification.md), [performance note](docs/performance.md), and the [private release checklist](docs/release-checklist.md) for expected outcomes, limitations, and remaining publication gates.
