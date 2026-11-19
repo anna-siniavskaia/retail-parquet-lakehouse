@@ -20,3 +20,7 @@ Integration tests also passed for malformed JSON, unexpected fields, invalid amo
 The repository was copied without `.git`, `data/`, or `warehouse/` into a new temporary directory. The first Docker build attempt stopped while Docker Registry returned an `EOF` for the Python base-image metadata; an immediate retry resolved the same pinned image digest and completed successfully.
 
 The clean run processed **200** deliveries into **190** unique events and **100** latest orders across **29** date partitions. All **9** tests passed, including the check that detects changed bronze content when row counts remain equal. Running the complete demo again skipped all three source files by their recorded SHA-256 digests, preserved the exact fixture counts, and passed all **9** tests again.
+
+## Tracked-file review, 19 November 2026
+
+`git ls-files` returned **21** source, contract, workflow, test, and documentation files. No tracked path was inside `data/` or `warehouse/`, and no `.env`, DuckDB, Parquet, or JSONL file was tracked. A case-insensitive scan found no password, secret, API key, access token, or private-key marker. No project file outside generated directories exceeded **1 MiB**. The worktree was clean before this verification record was added.
