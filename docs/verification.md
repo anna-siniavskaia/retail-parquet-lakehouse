@@ -24,3 +24,9 @@ The clean run processed **200** deliveries into **190** unique events and **100*
 ## Tracked-file review, 19 November 2026
 
 `git ls-files` returned **21** source, contract, workflow, test, and documentation files. No tracked path was inside `data/` or `warehouse/`, and no `.env`, DuckDB, Parquet, or JSONL file was tracked. A case-insensitive scan found no password, secret, API key, access token, or private-key marker. No project file outside generated directories exceeded **1 MiB**. The worktree was clean before this verification record was added.
+
+## Order-history invariants, 23 November 2026
+
+Three integration cases were added for invariants already enforced by the loader: a different event cannot claim an existing `(order_id, event_version)`, stable order attributes cannot change in a later version, and an older version arriving after a newer one is retained in history without regressing the current order state. The first two failure cases also verify that the entire input file rolls back.
+
+The image was rebuilt and the complete demo ran from an empty container filesystem. It processed **200 deliveries** into **190 unique events**, **100 current orders**, and **29 date partitions**; all **12 tests passed**. A Docker Desktop bind mount returned macOS error 35 while reading the schema, so the authoritative clean run used the exact built image without host volume mounts. The same image layout is used by hosted CI after checkout.

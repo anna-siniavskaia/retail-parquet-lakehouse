@@ -60,6 +60,62 @@ class LakehouseIntegrationTests(unittest.TestCase):
         with duckdb.connect(str(self.output / "lakehouse.duckdb"), read_only=True) as connection:
             self.assertEqual(connection.execute("SELECT count(*) FROM meta.files").fetchone()[0], 1)
 
+    def test_different_event_cannot_claim_an_existing_order_version(self):
+        run(self.raw, self.output)
+        original = self.batches["batch-001.jsonl"][0]
+        conflicting = {
+            **original,
+            "event_id": "9b12a8aa-a553-4bca-9242-bd93f8239f62",
+        }
+        self.write_batch("batch-002.jsonl", [json.dumps(conflicting)])
+        with self.assertRaisesRegex(ValueError, "conflicting version"):
+            run(self.raw, self.output)
+        self.assertEqual(check_quality(self.output)["delivered"], 10)
+
+    def test_order_identity_change_rolls_back_the_entire_file(self):
+        run(self.raw, self.output)
+        original = self.batches["batch-001.jsonl"][0]
+        changed_identity = {
+            **original,
+            "event_id": "3d6d74a3-31c7-49d0-b89d-9a8fb678b67c",
+            "event_version": 2,
+            "status": "paid",
+            "amount_cents": original["amount_cents"] + 1,
+        }
+        self.write_batch("batch-002.jsonl", [json.dumps(changed_identity)])
+        with self.assertRaisesRegex(ValueError, "stable order attributes changed"):
+            run(self.raw, self.output)
+        self.assertEqual(check_quality(self.output)["delivered"], 10)
+
+    def test_late_older_version_is_retained_without_regressing_current_state(self):
+        run(self.raw, self.output)
+        version_two = next(
+            event for event in self.batches["batch-002.jsonl"] if event["event_version"] == 2
+        )
+        version_three = {
+            **version_two,
+            "event_id": "55ed030b-6f38-4767-a08d-b45576c78b56",
+            "event_version": 3,
+            "status": "refunded",
+        }
+        self.write_batch("batch-002.jsonl", [json.dumps(version_three)])
+        run(self.raw, self.output)
+        self.write_batch("batch-003.jsonl", [json.dumps(version_two)])
+        run(self.raw, self.output)
+
+        with duckdb.connect(str(self.output / "lakehouse.duckdb"), read_only=True) as connection:
+            current = connection.execute(
+                "SELECT event_version, status FROM core.orders WHERE order_id = ?",
+                [version_two["order_id"]],
+            ).fetchone()
+            history = connection.execute(
+                "SELECT event_version FROM core.events WHERE order_id = ? ORDER BY event_version",
+                [version_two["order_id"]],
+            ).fetchall()
+        self.assertEqual(current, (3, "refunded"))
+        self.assertEqual(history, [(1,), (2,), (3,)])
+        self.assertEqual(check_quality(self.output)["unique_events"], 12)
+
     def test_replay_skips_unchanged_file_and_rejects_changed_file(self):
         run(self.raw, self.output)
         self.assertEqual(run(self.raw, self.output), [("batch-001.jsonl", "skipped")])
