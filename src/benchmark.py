@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import tempfile
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 from src.check_quality import check_quality
@@ -12,17 +13,39 @@ from src.generate_orders import generate_batches, write_batches
 from src.lakehouse import run
 
 
-def benchmark(order_count: int) -> tuple[int, float, int]:
+@dataclass(frozen=True)
+class BenchmarkResult:
+    orders: int
+    deliveries: int
+    cold_seconds: float
+    replay_seconds: float
+    replay_skipped_batches: int
+    parquet_bytes: int
+
+
+def benchmark(order_count: int) -> BenchmarkResult:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         batches = generate_batches(42, order_count)
         write_batches(root / "raw", batches)
         start = time.perf_counter()
         run(root / "raw", root / "warehouse")
-        elapsed = time.perf_counter() - start
+        cold_seconds = time.perf_counter() - start
+        replay_start = time.perf_counter()
+        replay = run(root / "raw", root / "warehouse")
+        replay_seconds = time.perf_counter() - replay_start
+        if any(outcome != "skipped" for _, outcome in replay):
+            raise RuntimeError(f"unchanged replay processed a batch: {replay}")
         summary = check_quality(root / "warehouse")
         artifact_bytes = sum(path.stat().st_size for path in (root / "warehouse").rglob("*.parquet"))
-        return summary["delivered"], elapsed, artifact_bytes
+        return BenchmarkResult(
+            orders=order_count,
+            deliveries=summary["delivered"],
+            cold_seconds=cold_seconds,
+            replay_seconds=replay_seconds,
+            replay_skipped_batches=len(replay),
+            parquet_bytes=artifact_bytes,
+        )
 
 
 def main() -> None:
@@ -30,10 +53,13 @@ def main() -> None:
     parser.add_argument("--orders", type=int, nargs="+", default=[100, 1000])
     args = parser.parse_args()
     for order_count in args.orders:
-        deliveries, elapsed, artifact_bytes = benchmark(order_count)
+        result = benchmark(order_count)
         print(
-            f"orders={order_count} deliveries={deliveries} "
-            f"ingest_seconds={elapsed:.3f} parquet_bytes={artifact_bytes}"
+            f"orders={result.orders} deliveries={result.deliveries} "
+            f"cold_seconds={result.cold_seconds:.3f} "
+            f"replay_seconds={result.replay_seconds:.3f} "
+            f"replay_skipped_batches={result.replay_skipped_batches} "
+            f"parquet_bytes={result.parquet_bytes}"
         )
 
 

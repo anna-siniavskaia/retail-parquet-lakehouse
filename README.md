@@ -31,6 +31,7 @@ warehouse/  DuckDB state and Parquet layers (ignored by Git)
 - [x] Implement bronze, silver, and gold Parquet layers with an incremental file manifest.
 - [x] Quarantine bad records and detect schema drift.
 - [x] Verify replay, partition updates, reconciliation, and a reproducible benchmark.
+- [x] Measure both cold ingestion and an unchanged three-batch replay.
 - [x] Add a local CI workflow for fresh builds and replays.
 - [ ] Complete the final review and verify hosted CI after private publication.
 - [ ] Review and publish privately on a later date than the first DE project.

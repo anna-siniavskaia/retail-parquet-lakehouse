@@ -30,3 +30,7 @@ The clean run processed **200** deliveries into **190** unique events and **100*
 Three integration cases were added for invariants already enforced by the loader: a different event cannot claim an existing `(order_id, event_version)`, stable order attributes cannot change in a later version, and an older version arriving after a newer one is retained in history without regressing the current order state. The first two failure cases also verify that the entire input file rolls back.
 
 The image was rebuilt and the complete demo ran from an empty container filesystem. It processed **200 deliveries** into **190 unique events**, **100 current orders**, and **29 date partitions**; all **12 tests passed**. A Docker Desktop bind mount returned macOS error 35 while reading the schema, so the authoritative clean run used the exact built image without host volume mounts. The same image layout is used by hosted CI after checkout.
+
+## Cold and replay benchmark, 25 November 2026
+
+The benchmark now times an unchanged replay after every cold load and fails unless all three batches are skipped. In the Dockerized runner, the 100-order fixture completed cold ingestion in **0.525 s** and replay in **0.014 s**; the 1,000-order fixture completed cold ingestion in **3.258 s** and replay in **0.015 s**. A dedicated integration test runs the same cold/replay contract on the ten-order fixture.
