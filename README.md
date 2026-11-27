@@ -35,7 +35,7 @@ warehouse/  DuckDB state and Parquet layers (ignored by Git)
 - [x] Add a CI workflow for fresh builds and unchanged replays.
 - [x] Make the Docker Compose demo reliable on Docker Desktop with named data volumes.
 - [x] Complete the local release review with 13 passing tests.
-- [ ] Verify the first hosted CI run after public publication.
+- [x] Verify the first hosted CI run after public publication.
 
 With Docker running, generate local source files and build the lakehouse from a fresh directory:
 
@@ -43,7 +43,7 @@ With Docker running, generate local source files and build the lakehouse from a 
 docker compose run --build --rm pipeline sh scripts/run_demo.sh
 ```
 
-The generator writes three ordered batch files. Repeating the demo skips unchanged files and checks the same expected output. Docker Compose stores generated input and lakehouse state in named volumes so the command behaves consistently on Linux and Docker Desktop. A direct Python run still uses the ignored local `data/` and `warehouse/` directories. The default fixture has 100 orders, 190 unique change events, and 10 intentional duplicate deliveries. The [CI workflow](.github/workflows/verify.yml) runs the same sequence on every push and pull request.
+The generator writes three ordered batch files. Repeating the demo skips unchanged files and checks the same expected output. Docker Compose stores generated input and lakehouse state in named volumes so the command behaves consistently on Linux and Docker Desktop. A direct Python run still uses the ignored local `data/` and `warehouse/` directories. The default fixture has 100 orders, 190 unique change events, and 10 intentional duplicate deliveries. The [CI workflow](.github/workflows/verify.yml) runs the same sequence on every push and pull request; the [first public run](https://github.com/anna-siniavskaia/retail-parquet-lakehouse/actions/runs/45978231886) passed the fresh build and unchanged replay.
 
 ## Default fixture result
 

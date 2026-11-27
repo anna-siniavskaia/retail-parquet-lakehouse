@@ -22,6 +22,6 @@ See [verification.md](verification.md) and [performance.md](performance.md) for 
 - [x] Run the complete Docker demo and all thirteen tests from a clean container filesystem.
 - [x] Run the documented Docker Compose command twice with named data volumes.
 - [x] Review `git status` and the complete tracked-file list for credentials, generated data, and large files.
-- [ ] Create the public GitHub repository and push `main`.
-- [ ] Confirm the GitHub Actions workflow rebuilds and replays the lakehouse successfully.
+- [x] Create the [public GitHub repository](https://github.com/anna-siniavskaia/retail-parquet-lakehouse) and push `main`.
+- [x] Confirm the [first GitHub Actions run](https://github.com/anna-siniavskaia/retail-parquet-lakehouse/actions/runs/45978231886) rebuilds and replays the lakehouse successfully.
 - [ ] Open every README documentation link and confirm the Mermaid diagram renders.
