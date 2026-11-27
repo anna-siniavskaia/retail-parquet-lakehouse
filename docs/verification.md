@@ -34,3 +34,7 @@ The image was rebuilt and the complete demo ran from an empty container filesyst
 ## Cold and replay benchmark, 25 November 2026
 
 The benchmark now times an unchanged replay after every cold load and fails unless all three batches are skipped. In the Dockerized runner, the 100-order fixture completed cold ingestion in **0.525 s** and replay in **0.014 s**; the 1,000-order fixture completed cold ingestion in **3.258 s** and replay in **0.015 s**. A dedicated integration test runs the same cold/replay contract on the ten-order fixture.
+
+## Docker Desktop release path, 27 November 2026
+
+The documented Compose command reproduced macOS error 35 while writing JSONL into a host bind mount. The `data` and `warehouse` mounts were replaced with named Docker volumes, while source, contracts, tests, and scripts remain read-only bind mounts. A fresh Compose run then processed **200 deliveries** into **190 unique events**, **100 current orders**, and **29 date partitions**. All **13 tests passed**. An immediate second run skipped all three unchanged batches and passed the same 13 tests again.

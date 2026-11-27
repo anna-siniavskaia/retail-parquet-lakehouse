@@ -6,5 +6,9 @@ services:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
       - ./scripts:/app/scripts:ro
-      - ./data:/app/data
-      - ./warehouse:/app/warehouse
+      - pipeline_data:/app/data
+      - pipeline_warehouse:/app/warehouse
+
+volumes:
+  pipeline_data:
+  pipeline_warehouse:

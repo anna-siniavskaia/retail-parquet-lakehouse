@@ -1,6 +1,6 @@
-# Private release checklist
+# Public release checklist
 
-Use this checklist for the project's separate private GitHub release. Keep each checked item tied to reproducible evidence.
+Keep each checked item tied to reproducible evidence.
 
 ## Local evidence
 
@@ -17,14 +17,11 @@ Use this checklist for the project's separate private GitHub release. Keep each 
 
 See [verification.md](verification.md) and [performance.md](performance.md) for observed results and limitations.
 
-## Before the first push
+## Release verification
 
-- [x] Run the complete Docker demo and all twelve tests from a clean container filesystem.
+- [x] Run the complete Docker demo and all thirteen tests from a clean container filesystem.
+- [x] Run the documented Docker Compose command twice with named data volumes.
 - [x] Review `git status` and the complete tracked-file list for credentials, generated data, and large files.
-- [ ] Create the GitHub repository as private and push `main` on its planned release date.
-
-## After the first push
-
+- [ ] Create the public GitHub repository and push `main`.
 - [ ] Confirm the GitHub Actions workflow rebuilds and replays the lakehouse successfully.
 - [ ] Open every README documentation link and confirm the Mermaid diagram renders.
-- [ ] Keep the repository private until Anna makes a separate visibility decision.
